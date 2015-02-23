@@ -2,36 +2,32 @@
 ///////////// ULTRASONIC SENSOR CLASS ////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-void UltrasonicSensor::UltrasonicSensor(void)
-{
-	_trigger = ULTRASONIC_SENSOR_TRIGGER_A;
-	_echo = ULTRASONIC_SENSOR_ECHO_A;
+void UltrasonicSensor::UltrasonicSensor(void) {
+  trigger_ = ULTRASONIC_SENSOR_TRIGGER_A;
+  echo_ = ULTRASONIC_SENSOR_ECHO_A;
 }
 
-void UltrasonicSensor::UltrasonicSensor(char sensor)
-{
-	if(sensor == 'B')
-	{
-		_trigger = ULTRASONIC_SENSOR_TRIGGER_B;
-		_echo = ULTRASONIC_SENSOR_ECHO_B;
-	}
-	else if(sensor == 'C')
-	{
-		_trigger = ULTRASONIC_SENSOR_TRIGGER_C;
-		_echo = ULTRASONIC_SENSOR_ECHO_C;
-	}
-	else
-	{
-		_trigger = ULTRASONIC_SENSOR_TRIGGER_A;
-		_echo = ULTRASONIC_SENSOR_ECHO_A;
-	}
+void UltrasonicSensor::UltrasonicSensor(char sensor) {
+  if(sensor == 'A') {
+    trigger_ = ULTRASONIC_SENSOR_TRIGGER_A;
+    echo_ = ULTRASONIC_SENSOR_ECHO_A;
+  }
+  else if(sensor == 'B') {
+    trigger_ = ULTRASONIC_SENSOR_TRIGGER_B;
+    echo_ = ULTRASONIC_SENSOR_ECHO_B;
+  }
+  else if(sensor == 'C') {
+    _trigger = ULTRASONIC_SENSOR_TRIGGER_C;
+    _echo = ULTRASONIC_SENSOR_ECHO_C;
+  }
+  else
+    REPORT ERROR
 }
 
 // DEFINIR
 //////////////////////////////////////
-long UltrasonicSensor::measure(void)
-{
-}
+long UltrasonicSensor::measure(void) {
+} 
 //////////////////////////////////////
 //
 
@@ -41,70 +37,56 @@ long UltrasonicSensor::measure(void)
 //////////////////////////////////////////////////////////////////////
 
 
-void SingleMotor::SingleMotor(void)
-{
-	_pin1 = MOTOR_PIN_1_A;
-	_pin2 = MOTOR_PIN_2_A;
-	_speed = 0;
-}	
+void SingleMotor::SingleMotor(void) {
+  REPORT ERROR
+}  
 
-void SingleMotor::SingleMotor(char motor)
-{
-	if(motor == 'B')
-	{
-		_pin1 = MOTOR_PIN_1_B;
-		_pin2 = MOTOR_PIN_2_B;
-	}
-	else
-	{	
-		_pin1 = MOTOR_PIN_1_A;
-		_pin2 = MOTOR_PIN_2_A;
-	}
-	_speed = 0;
-}	
+void SingleMotor::SingleMotor(char motor) {
+  if (motor == 'A') {
+    pin1_ = MOTOR_PIN_1_A;
+    pin2_ = MOTOR_PIN_2_A;
+  }
+  else if(motor == 'B') {
+    pin1_ = MOTOR_PIN_1_B;
+    pin2_ = MOTOR_PIN_2_B;
+  }
+  else {
+    REPORT ERROR  
+  }
+  speed_ = MIN_SPEED;
+}  
 
-void SingleMotor::setSpeed(int speed)
-{
-	if(speed >= 0) _speed=speed;
-	else _speed=0;
+void SingleMotor::ValidateSpeed(int speed) {
+  if (speed < MIN_SPEED || speed > MAX_SPEED) {
+    REPORT ERROR
+  }
 }
 
-void SingleMotor::hardStop(void)
-{
-	digitalWrite(_pin1, HIGH);
-	digitalWrite(_pin2, HIGH);
+void SingleMotor::SetSpeed(int speed, direction_t direction) {
+  ValidateSpeed(speed);
+  speed_ = speed;
+
+  int pwm_duty;
+
+  if (direction == FORWARD) {
+    digitalWrite(pin1_, HIGH);
+    pwm_duty = (MIN_PWM + _speed * (MAX_SPEED - MIN_PWM) / MAX_SPEED );
+  }
+  else {
+    digitalWrite(pin1_, LOW);
+    pwm_duty = ( MAX_SPEED - (MIN_PWM + _speed*(MAX_SPEED-MIN_PWM)/MAX_SPEED));
+  }
+  analogWrite(pin2_, pwm_duty);
 }
 
-void SingleMotor::softStop(void)
-{
-	digitalWrite(_pin1, LOW);
-	digitalWrite(_pin2, LOW);
+void SingleMotor::HardStop(void) {
+  digitalWrite(pin1_, HIGH);
+  digitalWrite(pin2_, HIGH);
 }
 
-void SingleMotor::forward(void)
-{
-	digitalWrite(_pin1, HIGH);
-	analogWrite(_pin2, _speed);
-}
-
-void SingleMotor::forward(int speed)
-{
-	setSpeed(speed);
-	digitalWrite(_pin1, HIGH);
-	analogWrite(_pin2, _speed);
-}
-
-void SingleMotor::reverse(void)
-{
-	digitalWrite(_pin1, LOW);
-	analogWrite(_pin2, _speed);
-}
-
-void SingleMotor::reverse(int speed)
-{
-	setSpeed(speed);
-	digitalWrite(_pin1, LOW);
-	analogWrite(_pin2, _speed);
+void SingleMotor::SoftStop(void) {
+  digitalWrite(pin1_, LOW);
+  digitalWrite(pin2_, LOW);
 }
 
 
@@ -112,125 +94,60 @@ void SingleMotor::reverse(int speed)
 ///////////// COMPLETE MOTORS CLASS //////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-void CompleteMotors::CompleteMotors(void)
-{
-	_motorLeft = SimpleMotor('A');
-	_motorRight = SimpleMotor('B');
-	_speed = 0;
+
+void CompleteMotors::CompleteMotors(void): _motorLeft('A'), _motorRight('B') {
+  _speed = MIN_SPEED;
 }
 
-void CompleteMotors::CompleteMotors(char motor1)
-{
-	if (motor1='A')
-	{
-		_motorLeft = SimpleMotor('A');
-		_motorRight = SimpleMotor('B');
-	}
-	else
-	{
-		_motorLeft = SimpleMotor('B');
-		_motorRight = SimpleMotor('A');
-	}
-	_speed = 0;
+void CompleteMotors::CompleteMotors(char motorLeft, char motorRight): _motorLeft(motorLeft), _motorRight(motorRight) {
+  if(motor1==motor2) REPORT ERROR; 
+  _speed = MIN_SPEED;
 }
 
-void CompleteMotors::setSpeed(int speed)
-{
-	if(speed >= 0) _speed=speed;
-	else _speed=0;
-	_motorLeft.setSpeed(_speed);
-	_motorRight.setSpeed(_speed);
+void CompleteMotors::setSpeed(int speed) {
+  _speed = speed;
+  _motorLeft.setSpeed(_speed);
+  _motorRight.setSpeed(_speed);
 }
 
-void CompleteMotors::hardStop(void)
-{
-	_motorLeft.hardStop();
-	_motorRight.hardStop();
+void CompleteMotors::hardStop(void) {
+  _motorLeft.hardStop();
+  _motorRight.hardStop();
 }
 
-void CompleteMotors::softStop(void)
-{
-	_motorLeft.softStop();
-	_motorRight.softStop();
+void CompleteMotors::softStop(void) {
+  _motorLeft.softStop();
+  _motorRight.softStop();
 }
 
-void forward(void)
-{
-	_motorLeft.forward();
-	_motorRight.forward();
+void forward(void) {
+  _motorLeft.forward();
+  _motorRight.forward();
 }
 
-void forward(int speed)
-{
-	setSpeed(speed);
-	_motorLeft.forward();
-	_motorRight.forward();
+void reverse(void) {
+  _motorLeft.reverse();
+  _motorRight.reverse();
 }
 
-void reverse(void)
-{
-	_motorLeft.reverse();
-	_motorRight.reverse();
+void forwardRight(void) {
+  _motorLeft.forward();
+  _motorRight.softStop();
 }
 
-void reverse(int speed)
-{
-	setSpeed(speed);
-	_motorLeft.reverse();
-	_motorRight.reverse();
+void forwardLeft(void) {
+  _motorLeft.softStop();
+  _motorRight.forward();
 }
 
-void forwardRight(void)
-{
-	_motorLeft.forward();
-	_motorRight.softStop();
+void turnRight(void) {
+  _motorLeft.forward();
+  _motorRight.reverse();
 }
 
-void forwardRight(int speed)
-{
-	setSpeed(speed);
-	_motorLeft.forward();
-	_motorRight.softStop();
-}
-
-void forwardLeft(void)
-{
-	_motorLeft.softStop();
-	_motorRight.forward();
-}
-
-void forwardLeft(int speed)
-{
-	setSpeed(speed);
-	_motorLeft.softStop();
-	_motorRight.forward();
-}
-
-
-void turnRight(void)
-{
-	_motorLeft.forward();
-	_motorRight.reverse();
-}
-
-void turnRight(int speed)
-{
-	setSpeed(speed);
-	_motorLeft.forward();
-	_motorRight.reverse();
-}
-
-void turnLeft(void)
-{
-	_motorLeft.reverse();
-	_motorRight.forward();
-}
-
-void turnLeft(int speed)
-{
-	setSpeed(speed);
-	_motorLeft.reverse();
-	_motorRight.forward();
+void turnLeft(void) {
+  _motorLeft.reverse();
+  _motorRight.forward();
 }
 
 
