@@ -5,7 +5,7 @@
 */
 
 
-// functional connections
+//functional connections
 #define MOTOR_LP  5 //Left Positive
 #define MOTOR_LN  6 //Left Negative
 #define MOTOR_RP  9
@@ -21,7 +21,7 @@ int RANGE=5;     //ciclo de histeresis
 
 
 void motors_stop();
-void motor(char motor, char dir, int pwm); // char motor could be 'R' or 'L', dir could be 'F' or 'B' , PWM int 0 to 255
+void motor(char motor, char dir, int pwm); // char motor could be 'R' (right) or 'L' (left), dir could be 'F' or 'B' , PWM int 0 to 255
 
 void setup()
 {
