@@ -14,6 +14,7 @@
 #define ECHOPIN_A 8
 #define ROBOT_SPEED 40
 
+
 long distance;
 int DISTANCE_MED=30; // distance from your hand to the robot
 int RANGE=5;     //ciclo de histeresis
