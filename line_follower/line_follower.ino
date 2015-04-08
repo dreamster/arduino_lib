@@ -11,14 +11,14 @@
 #define MOTOR_RN 10
 #define TRIGPIN_A A3
 #define ECHOPIN_A 8
-#define ROBOT_SPEED 35
+#define ROBOT_SPEED 30
+#define DIST_MAX 10
+#define DIF 10
+#define ERR 20
 const int analogInPin0 = A0;  // Analog input pin that the potentiometer is attached to
 const int analogInPin1 = A1;  // Analog input pin that the potentiometer is attached to
-
+int measure_l,measure_r;
 long distance;
-int DISTANCE_MED=50; // distance from your hand to the robot
-int RANGE=10;     //ciclo de histeresis
-
 
 void motors_stop();
 void motor(char motor, char dir, int pwm); // char motor could be 'R' (right) or 'L' (left), dir could be 'F' or 'B' , PWM int 0 to 255
@@ -36,22 +36,36 @@ void setup()
 void loop(){
 	motors_stop();
 	delay(1000);
-	distance=measure();
+	distance=distance_measure();
+        measure_l=ir_measure('L');
+        measure_r=ir_measure('R');
 	while(true){
-		distance=measure();
-		if(distance<=DISTANCE_MED-RANGE){
-			motor('R','F',ROBOT_SPEED);
-			motor('L','F',ROBOT_SPEED);
-		}
-		else if(distance>=DISTANCE_MED+RANGE){
-			motor('R','B',ROBOT_SPEED);
-			motor('L','B',ROBOT_SPEED);
-		}
-		else if(distance<=(DISTANCE_MED+RANGE) && distance>=(DISTANCE_MED-RANGE)){
-			motors_stop();
-                        delay(200);
-		}
-	delay(90);
+		distance=distance_measure();
+                measure_l=ir_measure('L');
+                measure_r=ir_measure('R');
+		if(distance>=DIST_MAX){
+                  if(measure_l < (measure_r + ERR)){ 
+                    motor('R','B',ROBOT_SPEED + DIF);
+		    motor('L','B',ROBOT_SPEED - DIF);
+                  }
+                  else if (measure_r < (measure_l + ERR)){
+                    motor('R','B',ROBOT_SPEED - DIF);
+		    motor('L','B',ROBOT_SPEED + DIF);
+                  }
+                  else {
+                    motor('R','B',ROBOT_SPEED);
+		    motor('L','B',ROBOT_SPEED);
+                  }
+                delay(10);
+                }
+                else if(distance<=DIST_MAX){
+                  while(distance<=DIST_MAX){
+                    motors_stop();
+                    delay(1000);
+                    distance=distance_measure();
+                  }
+                }
+	
 	}
 }
 
@@ -93,7 +107,7 @@ void motor(char motor, char dir, int pwm){	//Entries of this function are motor 
 
 /*------------MEASURE-------------*/ 
 
-long measure() {
+long distance_measure() {
 	long duration, distance;
 	digitalWrite(TRIGPIN_A, LOW);  
 	delayMicroseconds(2); 
@@ -111,4 +125,26 @@ long measure() {
 } 
 
 
+int ir_measure(char SIDE){
+  // read the analog in value:
+  int outputValue=0;
+  if(SIDE=='R'){
+    outputValue = analogRead(analogInPin0);
+    // map it to the range of the analog out:
+    outputValue = map(outputValue, 0, 1023, 0, 255);
+  }
+  // read the analog in value:
+  else if(SIDE=='L'){
+    outputValue = analogRead(analogInPin1);
+    // map it to the range of the analog out:
+    outputValue = map(outputValue, 0, 1023, 0, 255);
+  }
+  return outputValue;
+}
+
+
 /*EOF*/
+
+
+
+
