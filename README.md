@@ -22,7 +22,7 @@ Alternatively, copy only the `Dreamlib.h` file into your project folder, and the
 Using
 -----
 
-Instanciate features without any parameters to use them.
+Instantiate features without any parameters to use them.
 
     Motors motors;
     InfraredSensors ir_sensors;
@@ -48,19 +48,19 @@ Can also use the individual methods for changing speed or direction of each moto
 Infrared Sensors
 ----------------
 
-Called with `.left()` or `.right()`, returns distance in cm (typically `0` to `400`).
+Called with `.left()` or `.right()`, returns `0` to `1023`.
 
     left_sensor_value = ir_sensors.left();
-
-Can specify a maximum distance to speed up sensing with `.setMaximumSensingDistance(distance_in_cm)`.
 
 
 Ultrasonic sensors
 ------------------
 
-Called with `.a()` (front sensor), `.b()` or `.c()` (the sensors from the side), returns `0` to `1023`.
+Called with `.a()` (front sensor), `.b()` or `.c()` (the sensors from the side), returns distance in cm (typically `0` to `400`).
 
     distance_from_front_sensor = us_sensors.a();
+
+Can specify a maximum distance to speed up sensing with `.setMaximumSensingDistance(distance_in_cm)`.
 
 
 Leds
